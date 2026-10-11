@@ -1,0 +1,105 @@
+name: Build and Package Toolbox APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Flutter APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses 2>/dev/null || true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Prepare Artifacts & Checksums
+        run: |
+          mkdir -p out
+          cp build/app/outputs/flutter-apk/app-release.apk out/toolbox.apk
+          cp build/app/outputs/flutter-apk/app-release.apk out/toolbox-v1.0.1.apk
+          (cd out && sha256sum toolbox.apk > toolbox.apk.sha256)
+          (cd out && sha256sum toolbox-v1.0.1.apk > toolbox-v1.0.1.apk.sha256)
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolbox-apk
+          path: |
+            out/*.apk
+            out/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish Rolling Release (Main Branch)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Toolbox (Latest Continuous Build)"
+          body: |
+            ### Automated Continuous Build
+            - **Commit**: `${{ github.sha }}`
+            - **Branch**: `main`
+            - **Package**: `toolbox.apk`
+            - **Modules**: Device Health & Diagnostics, Partition Manager, ADB & Fastboot Tools, Task Manager, Package Installer.
+          files: |
+            out/toolbox.apk
+            out/toolbox.apk.sha256
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Tagged Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/toolbox.apk
+            out/toolbox.apk.sha256
+            out/toolbox-*.apk
+            out/toolbox-*.apk.sha256
+          name: "Toolbox ${{ github.ref_name }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
