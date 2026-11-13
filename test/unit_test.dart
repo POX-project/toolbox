@@ -112,6 +112,14 @@ void main() {
       expect(storageInfo, isA<Map<String, String>>());
       expect(storageInfo.isNotEmpty, isTrue);
     });
+
+    test('getNetworkInfo returns telemetry and handles network_info_plus gracefully', () async {
+      final mockRunner = CommandRunner();
+      final infoService = InfoService(mockRunner);
+      final networkInfo = await infoService.getNetworkInfo();
+      expect(networkInfo, isA<Map<String, String>>());
+      expect(networkInfo.containsKey('Active Interface'), isTrue);
+    });
   });
 
   group('AppTheme Theming Configuration Tests', () {
