@@ -47,6 +47,12 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Analyze Dart & Flutter Code
+        run: flutter analyze
+
+      - name: Run Test Suite
+        run: flutter test
+
       - name: Build Release APK
         run: flutter build apk --release
 
@@ -54,9 +60,9 @@ jobs:
         run: |
           mkdir -p out
           cp build/app/outputs/flutter-apk/app-release.apk out/toolbox.apk
-          cp build/app/outputs/flutter-apk/app-release.apk out/toolbox-v1.0.1.apk
+          cp build/app/outputs/flutter-apk/app-release.apk out/toolbox-v1.0.2.apk
           (cd out && sha256sum toolbox.apk > toolbox.apk.sha256)
-          (cd out && sha256sum toolbox-v1.0.1.apk > toolbox-v1.0.1.apk.sha256)
+          (cd out && sha256sum toolbox-v1.0.2.apk > toolbox-v1.0.2.apk.sha256)
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
