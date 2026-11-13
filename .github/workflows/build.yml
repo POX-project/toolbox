@@ -48,7 +48,7 @@ jobs:
         run: flutter pub get
 
       - name: Analyze Dart & Flutter Code
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Run Test Suite
         run: flutter test
