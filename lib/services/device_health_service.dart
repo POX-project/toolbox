@@ -2397,7 +2397,11 @@ class DeviceHealthService {
 
       final dfInfo = mnt != null ? dfData[mnt] : null;
       final inoInfo = mnt != null ? inodeData[mnt] : null;
-      final isRo = mountOpts != null && (mountOpts.startsWith('ro,') || mountOpts.contains(',ro,') || mountOpts.contains('ro'));
+      final isRo = mountOpts != null &&
+          (mountOpts == 'ro' ||
+              mountOpts.startsWith('ro,') ||
+              mountOpts.contains(',ro,') ||
+              mountOpts.endsWith(',ro'));
 
       loaded.add(PartitionInfo(
         name: name,
@@ -2424,7 +2428,11 @@ class DeviceHealthService {
         final mntInfo = mountMap[mnt];
         final inoInfo = inodeData[mnt];
         final opts = mntInfo?['options'];
-        final isRo = opts != null && (opts.startsWith('ro,') || opts.contains(',ro,'));
+        final isRo = opts != null &&
+            (opts == 'ro' ||
+                opts.startsWith('ro,') ||
+                opts.contains(',ro,') ||
+                opts.endsWith(',ro'));
 
         String displayName = mnt.replaceAll('/', '').toUpperCase();
         if (displayName.isEmpty) displayName = 'ROOTFS';

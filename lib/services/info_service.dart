@@ -50,10 +50,12 @@ final storageInfoProvider = FutureProvider<Map<String, String>>((ref) async {
 class InfoService {
   final CommandRunner _runner;
   final NetworkGeoService _geoService;
+  final NetworkInfo? _networkInfo;
 
-  InfoService([CommandRunner? runner, NetworkGeoService? geoService])
+  InfoService([CommandRunner? runner, NetworkGeoService? geoService, NetworkInfo? networkInfo])
       : _runner = runner ?? CommandRunner(),
-        _geoService = geoService ?? NetworkGeoService(runner ?? CommandRunner());
+        _geoService = geoService ?? NetworkGeoService(runner ?? CommandRunner()),
+        _networkInfo = networkInfo;
 
   Future<Map<String, String>> getCpuInfo() async {
     final Map<String, String> info = {};
@@ -276,7 +278,7 @@ class InfoService {
 
       // Fallback Wi-Fi subnet and broadcast from network_info_plus if available
       try {
-        final netPlus = NetworkInfo();
+        final netPlus = _networkInfo ?? NetworkInfo();
         final subnet = await netPlus.getWifiSubmask();
         final broadcast = await netPlus.getWifiBroadcast();
         if (subnet != null && subnet.isNotEmpty) info['Subnet Mask'] = subnet;
